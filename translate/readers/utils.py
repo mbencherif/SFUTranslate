@@ -1,7 +1,7 @@
 from torchtext import data, datasets
 from torchtext.data import Batch
 from configuration import cfg, device
-from readers.dataset import IWSLT, WMT19DeEn, Multi30k
+from readers.dataset import IWSLT, WMT19DeEn, Multi30k, WMT19DeFr
 from collections import Counter
 from tqdm import tqdm
 
@@ -183,6 +183,38 @@ def get_dataset(src_lan, tgt_lan, SRC: data.Field, TGT: data.Field, load_train_d
             test_data, tgt_lan) for test_data in test_data_list]
         src_train_file_address = ".data/wmt19_en_de/{}.{}".format(train_data, src_lan)
         tgt_train_file_address = ".data/wmt19_en_de/{}.{}".format(train_data, tgt_lan)
+    elif cfg.dataset_name == "wmt19_de_fr":
+        dev_data = dev_data if dev_data is not None else "valid"
+        test_data_list = test_data_list if test_data_list is not None else ['newstest2008', 'newstest2009', 'newstest2010', 'newstest2011',
+                                                                            'newstest2012', 'newstest2013', 'newstest2019', 'euelections_dev2019']
+        train_data = "train"
+        if not load_train_data:
+            val, *test = WMT19DeFr.splits(exts=('.{}'.format(src_lan), '.{}'.format(tgt_lan)), fields=(SRC, TGT), train=None,
+                                          validation="valid" if dev_data == "valid" else '{}-defr'.format(dev_data),
+                                          test_list=['{}-defr'.format(test_data) for test_data in test_data_list])
+            train = None
+        elif filter_for_max_length:
+            train, val, *test = WMT19DeFr.splits(
+                filter_pred=lambda x: len(vars(x)['src']) <= cfg.max_sequence_length and len(
+                    vars(x)['trg']) <= cfg.max_sequence_length, exts=('.{}'.format(src_lan), '.{}'.format(tgt_lan)),
+                fields=(SRC, TGT), train=train_data, validation="valid" if dev_data == "valid" else '{}-defr'.format(dev_data),
+                test_list=['{}-defr'.format(test_data) for test_data in test_data_list])
+        else:
+            train, val, *test = WMT19DeFr.splits(exts=('.{}'.format(src_lan), '.{}'.format(tgt_lan)), fields=(SRC, TGT), train=train_data,
+                                                 validation="valid" if dev_data == "valid" else '{}-defr'.format(dev_data),
+                                                 test_list=['{}-defr'.format(test_data) for test_data in test_data_list])
+        if dev_data == "valid":
+            src_val_file_address = ".data/wmt19_de_fr/valid.{}".format(src_lan)
+            tgt_val_file_address = ".data/wmt19_de_fr/valid.{}".format(tgt_lan)
+        else:
+            src_val_file_address = ".data/wmt19_de_fr/{}-defr.{}".format(dev_data, src_lan)
+            tgt_val_file_address = ".data/wmt19_de_fr/{}-defr.{}".format(dev_data, tgt_lan)
+        src_test_file_address = [".data/wmt19_de_fr/{}-defr.{}".format(
+            test_data, src_lan) for test_data in test_data_list]
+        tgt_test_file_address = [".data/wmt19_de_fr/{}-defr.{}".format(
+            test_data, tgt_lan) for test_data in test_data_list]
+        src_train_file_address = ".data/wmt19_de_fr/{}.{}".format(train_data, src_lan)
+        tgt_train_file_address = ".data/wmt19_de_fr/{}.{}".format(train_data, tgt_lan)
     else:
         raise ValueError("The dataset {} is not defined in torchtext or SFUTranslate!".format(cfg.dataset_name))
 
