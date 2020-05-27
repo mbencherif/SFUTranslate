@@ -68,7 +68,7 @@ def main(model_name):
         batch_count = 0.0
         all_perp = 0.0
         all_tokens_count = 0.0
-        ds = tqdm(dp.train_iter, total=dp.size_train)
+        ds = tqdm(dp.train_iter, total=dp.size_train, dynamic_ncols=True)
         optimizer.zero_grad()
         for ind, instance in enumerate(ds):
             if instance.src[0].size(0) < 2:
