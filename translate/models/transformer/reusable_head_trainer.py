@@ -629,6 +629,11 @@ def mode_2_project_sub_layers_tester(data_itr, model_name, bert_tokenizer, lingu
                     classes = predictions[b][l]
                     for idx in range(len(required_features_list)):
                         pred_id = int(classes[idx].item()) - 1
+                        if idx >= len(features) or b >= features[idx].size(0) or l >= features[idx].size(1):
+                            print("WARNING: skipping access to index out of bounds for a tensor with size "
+                                  "({}, {}, {}) with indices [{}, {}, {}]".format(len(features), features[idx].size(0),
+                                                                                  features[idx].size(1), idx, b, l))
+                            continue
                         actual_id = int(features[idx][b][l].item()) - 1
                         predicted_label = reverse_linguistic_vocab[required_features_list[idx]][pred_id] if pred_id > -1 else '__PAD__'
                         actual_label = reverse_linguistic_vocab[required_features_list[idx]][actual_id] if actual_id > -1 else '__PAD__'
@@ -648,6 +653,11 @@ def mode_2_project_sub_layers_tester(data_itr, model_name, bert_tokenizer, lingu
                                 else:
                                     idx += 1
                                 pred_id = int(classes[idx].item()) - 1
+                                if idx >= len(features) or b >= features[rf_idx].size(0) or l >= features[rf_idx].size(1):
+                                    print("WARNING: skipping access to index out of bounds for a tensor with size "
+                                          "({}, {}, {}) with indices [{}, {}, {}]".format(len(features), features[idx].size(0),
+                                                                                          features[idx].size(1), idx, b, l))
+                                    continue
                                 actual_id = int(features[rf_idx][b][l].item()) - 1
                                 predicted_label = reverse_linguistic_vocab[required_features_list[rf_idx]][pred_id] \
                                     if pred_id > -1 else '__PAD__'
