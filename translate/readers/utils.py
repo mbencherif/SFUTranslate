@@ -106,13 +106,15 @@ class MyIterator(data.Iterator):
 
 
 def get_dataset(src_lan, tgt_lan, SRC: data.Field, TGT: data.Field, load_train_data, dev_data=None, test_data_list=None,
-                filter_for_max_length=True):
+                filter_for_max_length=True, sentence_count_limit=-1):
     if cfg.dataset_name == "multi30k16":
         print("Loading Multi30k [MinLen:1;AvgLen:12;MaxLen:40]")
         if load_train_data:
-            train, val, test = Multi30k.splits(exts=('.{}'.format(src_lan), '.{}'.format(tgt_lan)), fields=(SRC, TGT))
+            train, val, test = Multi30k.splits(exts=('.{}'.format(src_lan), '.{}'.format(tgt_lan)), fields=(SRC, TGT),
+                                               sentence_count_limit=sentence_count_limit)
         else:
-            val, test = Multi30k.splits(exts=('.{}'.format(src_lan), '.{}'.format(tgt_lan)), fields=(SRC, TGT), train=None)
+            val, test = Multi30k.splits(exts=('.{}'.format(src_lan), '.{}'.format(tgt_lan)), fields=(SRC, TGT), train=None,
+                                        sentence_count_limit=sentence_count_limit)
             train = None
         val.name = "multi30k.dev"
         test.name = "multi30k.test"
@@ -130,18 +132,19 @@ def get_dataset(src_lan, tgt_lan, SRC: data.Field, TGT: data.Field, load_train_d
             val, *test = IWSLT.splits(exts=('.{}'.format(src_lan), '.{}'.format(tgt_lan)), fields=(SRC, TGT),
                                       test_list=['IWSLT17.TED.{}'.format(test_data) for test_data in test_data_list],
                                       validation='IWSLT17.TED.{}'.format(dev_data), debug_mode=bool(cfg.debug_mode),
-                                      train=None)
+                                      train=None, sentence_count_limit=sentence_count_limit)
             train = None
         elif filter_for_max_length:
             train, val, *test = IWSLT.splits(
                 filter_pred=lambda x: len(vars(x)['src']) <= cfg.max_sequence_length and len(
                     vars(x)['trg']) <= cfg.max_sequence_length, exts=('.{}'.format(src_lan), '.{}'.format(tgt_lan)),
                 fields=(SRC, TGT), test_list=['IWSLT17.TED.{}'.format(test_data) for test_data in test_data_list],
-                validation='IWSLT17.TED.{}'.format(dev_data), debug_mode=bool(cfg.debug_mode))
+                validation='IWSLT17.TED.{}'.format(dev_data), debug_mode=bool(cfg.debug_mode), sentence_count_limit=sentence_count_limit)
         else:
             train, val, *test = IWSLT.splits(exts=('.{}'.format(src_lan), '.{}'.format(tgt_lan)), fields=(SRC, TGT),
                                              test_list=['IWSLT17.TED.{}'.format(test_data) for test_data in test_data_list],
-                                             validation='IWSLT17.TED.{}'.format(dev_data), debug_mode=bool(cfg.debug_mode))
+                                             validation='IWSLT17.TED.{}'.format(dev_data), debug_mode=bool(cfg.debug_mode),
+                                             sentence_count_limit=sentence_count_limit)
         src_val_file_address = ".data/iwslt/de-en/IWSLT17.TED.{2}.de-en.{0}".format(src_lan, tgt_lan, dev_data)
         tgt_val_file_address = ".data/iwslt/de-en/IWSLT17.TED.{2}.de-en.{1}".format(src_lan, tgt_lan, dev_data)
         src_test_file_address = [".data/iwslt/de-en/IWSLT17.TED.{2}.de-en.{0}".format(
@@ -158,19 +161,21 @@ def get_dataset(src_lan, tgt_lan, SRC: data.Field, TGT: data.Field, load_train_d
             val, *test = WMT19DeEn.splits(exts=('.{}'.format(src_lan), '.{}'.format(tgt_lan)),
                                           fields=(SRC, TGT), train=None,
                                           validation="valid" if dev_data == "valid" else '{}-ende'.format(dev_data),
-                                          test_list=['{}-ende'.format(test_data) for test_data in test_data_list])
+                                          test_list=['{}-ende'.format(test_data) for test_data in test_data_list],
+                                          sentence_count_limit=sentence_count_limit)
             train = None
         elif filter_for_max_length:
             train, val, *test = WMT19DeEn.splits(
                 filter_pred=lambda x: len(vars(x)['src']) <= cfg.max_sequence_length and len(
                     vars(x)['trg']) <= cfg.max_sequence_length, exts=('.{}'.format(src_lan), '.{}'.format(tgt_lan)),
                 fields=(SRC, TGT), train=train_data, validation="valid" if dev_data == "valid" else '{}-ende'.format(dev_data),
-                test_list=['{}-ende'.format(test_data) for test_data in test_data_list])
+                test_list=['{}-ende'.format(test_data) for test_data in test_data_list], sentence_count_limit=sentence_count_limit)
         else:
             train, val, *test = WMT19DeEn.splits(exts=('.{}'.format(src_lan), '.{}'.format(tgt_lan)),
                                                  fields=(SRC, TGT), train=train_data,
                                                  validation="valid" if dev_data == "valid" else '{}-ende'.format(dev_data),
-                                                 test_list=['{}-ende'.format(test_data) for test_data in test_data_list])
+                                                 test_list=['{}-ende'.format(test_data) for test_data in test_data_list],
+                                                 sentence_count_limit=sentence_count_limit)
         if dev_data == "valid":
             src_val_file_address = ".data/wmt19_en_de/valid.{}".format(src_lan)
             tgt_val_file_address = ".data/wmt19_en_de/valid.{}".format(tgt_lan)
@@ -191,18 +196,20 @@ def get_dataset(src_lan, tgt_lan, SRC: data.Field, TGT: data.Field, load_train_d
         if not load_train_data:
             val, *test = WMT19DeFr.splits(exts=('.{}'.format(src_lan), '.{}'.format(tgt_lan)), fields=(SRC, TGT), train=None,
                                           validation="valid" if dev_data == "valid" else '{}-defr'.format(dev_data),
-                                          test_list=['{}-defr'.format(test_data) for test_data in test_data_list])
+                                          test_list=['{}-defr'.format(test_data) for test_data in test_data_list],
+                                          sentence_count_limit=sentence_count_limit)
             train = None
         elif filter_for_max_length:
             train, val, *test = WMT19DeFr.splits(
                 filter_pred=lambda x: len(vars(x)['src']) <= cfg.max_sequence_length and len(
                     vars(x)['trg']) <= cfg.max_sequence_length, exts=('.{}'.format(src_lan), '.{}'.format(tgt_lan)),
                 fields=(SRC, TGT), train=train_data, validation="valid" if dev_data == "valid" else '{}-defr'.format(dev_data),
-                test_list=['{}-defr'.format(test_data) for test_data in test_data_list])
+                test_list=['{}-defr'.format(test_data) for test_data in test_data_list], sentence_count_limit=sentence_count_limit)
         else:
             train, val, *test = WMT19DeFr.splits(exts=('.{}'.format(src_lan), '.{}'.format(tgt_lan)), fields=(SRC, TGT), train=train_data,
                                                  validation="valid" if dev_data == "valid" else '{}-defr'.format(dev_data),
-                                                 test_list=['{}-defr'.format(test_data) for test_data in test_data_list])
+                                                 test_list=['{}-defr'.format(test_data) for test_data in test_data_list],
+                                                 sentence_count_limit=sentence_count_limit)
         if dev_data == "valid":
             src_val_file_address = ".data/wmt19_de_fr/valid.{}".format(src_lan)
             tgt_val_file_address = ".data/wmt19_de_fr/valid.{}".format(tgt_lan)

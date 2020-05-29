@@ -35,9 +35,13 @@ class DataProvider:
             build_vocab = True
         else:
             print("Using the pre-loaded field objects ...")
+        try:
+            sentence_count_limit = cfg.sentence_count_limit
+        except KeyError:
+            sentence_count_limit = -1
         train, val, test_list, self.src_val_file_address, self.tgt_val_file_address, self.src_test_file_addresses, \
             self.tgt_test_file_addresses, self.src_train_file_address, self.tgt_train_file_address = get_dataset(
-                src_lan, tgt_lan, SRC, TGT, load_train_data)
+                src_lan, tgt_lan, SRC, TGT, load_train_data, sentence_count_limit=sentence_count_limit)
         if train is not None:  # for testing you don't need to load train data!
             print("Number of training examples: {}".format(len(train.examples)))
             if cfg.src_tokenizer == "bert":
