@@ -114,7 +114,8 @@ def main(model_name):
     all_tokens_count = 0.0
     ds = tqdm(get_data(n_actual_steps), total=n_actual_steps,  dynamic_ncols=True)
     optimizer.zero_grad()
-    for step, instance in enumerate(ds):
+    step = 0
+    for ind, instance in enumerate(ds):
         if instance.src[0].size(0) < 2:
             continue
         pred, _, lss, decoded_length, n_tokens = model(instance.src, instance.trg, test_mode=False, **instance.data_args)
@@ -127,11 +128,12 @@ def main(model_name):
         lss.backward()
         if grad_clip:
             nn.utils.clip_grad_norm_(model.parameters(), float(cfg.max_grad_norm))
-        if step % cfg.update_freq == 0:
+        if ind % cfg.update_freq == 0:
             """Implementation of gradient accumulation as suggested in https://arxiv.org/pdf/1806.00187.pdf"""
             optimizer.step()
             scheduler.step()
             optimizer.zero_grad()
+            step += 1
         current_perp = all_perp / batch_count
         if current_perp < 1500:
             ds.set_description("Step: {}, Average Loss: {:.2f}, Average Perplexity: {:.2f}".format(
