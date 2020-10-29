@@ -50,10 +50,9 @@ bahdanau_attention: true
 coverage_required: true
 coverage_lambda: 1.0
 
-n_epochs: 20
-init_optim: adagrad
-init_learning_rate: 0.01
-init_epochs: 0
+n_steps: 200
+save_every_n_minutes: 5
+n_checkpoints_to_keep: 5
 optim: adam
 learning_rate: 0.001
 learning_momentum: 0.9

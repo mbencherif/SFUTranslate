@@ -145,10 +145,9 @@ transformer_opt_factor: the NoamOpt scheduler learning rate multiplicatin factor
 transformer_opt_warmup: the number of NoamOpt scheduler warmup steps
 share_all_embeddings: the flag indicating the embeddings are required to be shared in encoder/decoder modules
 
-n_epochs: number of iterations over the all of training data 
-init_optim: the optimizer with which model is initialized [normally for just a few iterations] 
-init_learning_rate: the inital leaning rate of init_optim 
-init_epochs: the number of iterations that ``init_optim`` looks at the train data to initialize the parameters 
+n_steps: number of steps (batches * update_freq) of training data fed to the model 
+save_every_n_minutes: the time that the training script will wait to save the next checkpoint (in minutes)
+n_checkpoints_to_keep: the number of last checkpoints to keep to ensemble at the end of training
 optim: the optimizer with which the initialized model is tranied
 learning_rate: the initial leaning rate of ``optim``
 learning_momentum: the momentum used in ``optim`` if it is ``SGD``
